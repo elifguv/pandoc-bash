@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # Dosya uzantısını alma fonksiyonu
@@ -9,16 +10,16 @@ get_extension() {
 
 # Dönüştürme işlemini yapan fonksiyon
 convert_document() {
-
-    # Verilen dosya hatalı mı kontrolü
-    if [ ! -f "$input_file" ]; then
-    	echo "HATA: '$input_file' bulunamadı veya bir dosya değil."
-   	 return 1
-    fi
-
+    # 1. Değişkenler alınır
     local input_file="$1"
     local output_format="$2"
     local output_name="${input_file%.*}.$output_format"
+
+    # 2. Dosya hatalı mı kontrolü yapılır
+    if [ ! -f "$input_file" ]; then
+        echo "HATA: '$input_file' bulunamadı veya bir dosya değil."
+        return 1
+    fi
 
     # Pandoc yüklü mü kontrolü
     if ! command -v pandoc &> /dev/null; then
@@ -26,14 +27,18 @@ convert_document() {
         return 1
     fi
 
-    # Dönüştürme komutu
-    pandoc "$input_file" -o "$output_name"
-    
-    if [ $? -eq 0 ]; then
+    # Hata çıktısını (stderr) yakalayarak çalıştır 
+    PANDOC_OUTPUT=$(pandoc "$input_file" -o "$output_name" 2>&1)
+    EXIT_CODE=$?
+
+    if [ $EXIT_CODE -eq 0 ]; then
         echo "BAŞARILI: $output_name oluşturuldu."
         return 0
     else
-        echo "HATA: Dönüştürme başarısız oldu."
+        # Pandoc'un verdiği gerçek hatayı ekrana bas
+        echo "HATA: Dönüştürme başarısız!"
+        echo "DETAY: $PANDOC_OUTPUT" 
         return 1
     fi
 }
+    
