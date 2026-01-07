@@ -1,43 +1,59 @@
 #!/bin/bash
 
 # Fonksiyon dosyasını içe aktar
-source ./functions.sh
+ source ./lib/functions.sh
 
-# --- TUI Whiptail ---
+# --- TUI - Whiptail ---
 run_tui() {
-    # 1. Dosya Seçimi
-    INPUT_FILE=$(whiptail --title "Pandoc Dönüştürücü" --inputbox "Dönüştürülecek dosyanın yolunu girin:" 10 60 3>&1 1>&2 2>&3)
+    # Kullanıcı geçerli bir dosya girene kadar döngüden çıkılmaz.
+    while true; do
+        INPUT_FILE=$(whiptail --title "Pandoc Dönüştürücü" --inputbox "Dönüştürülecek dosyanın yolunu girin:" 10 60 3>&1 1>&2 2>&3)
+        
+        # İptal edilirse çık.
+        if [ $? -ne 0 ]; then
+            echo "İşlem iptal edildi."
+            exit 1
+        fi
 
-    # İptal edilirse çık
-    if [ $? -ne 0 ]; then
-        echo "İşlem iptal edildi."
-        exit 1
-    fi
+        # Hata: Boş giriş kontrolü - dosya yolu girilmezse tekrar sorulur.
+        if [ -z "$INPUT_FILE" ]; then
+            whiptail --title "Hata" --msgbox "Dosya yolu boş bırakılamaz! Lütfen tekrar deneyin." 10 60
+            continue 
+        fi
 
-    # Boş giriş kontrolü
-    if [ -z "$INPUT_FILE" ]; then
-        echo "HATA: Dosya adı girmediniz."
-        exit 1
-    fi
+        # Hata: Dosya var mı kontrolü yoksa tekrar sorulur
+        if [ ! -f "$INPUT_FILE" ]; then
+            whiptail --title "Hata" --msgbox "Böyle bir dosya bulunamadı: $INPUT_FILE\nLütfen dosya adını kontrol edip tekrar yazın." 10 60
+            continue 
+        fi
+
+        # Format doğru seçildiyse devam et
+        break
+    done
 
     # 2. Format Seçimi
-    FORMAT=$(whiptail --title "Format Seçimi" --menu "Hedef formatı seçin:" 17 60 6 \
-    "pdf" "PDF Belgesi" \
-    "docx" "Word Belgesi" \
-    "odt" "OpenDocument" \
-    "html" "HTML Sayfası" \
-    "md" "Markdown" \
-    "txt" "Düz Metin" 3>&1 1>&2 2>&3)
+    # Yanlışlıkla iptale basarsa programın çökmemesi için döngü kullanılır
+    while true; do
+        FORMAT=$(whiptail --title "Format Seçimi" --menu "Hedef formatı seçin:" 17 60 6 \
+        "pdf" "PDF Belgesi" \
+        "docx" "Word Belgesi" \
+        "odt" "OpenDocument" \
+        "html" "HTML Sayfası" \
+        "md" "Markdown" \
+        "txt" "Düz Metin" 3>&1 1>&2 2>&3)
 
-    if [ $? -ne 0 ]; then
-        echo "Format seçilmedi."
-        exit 1
-    fi
+        if [ $? -ne 0 ]; then
+             echo "Format seçimi iptal edildi."
+             exit 1
+        fi
+        
+        break
+    done
 
     # 3. Onay ve İşlem
     if (whiptail --title "Onay" --yesno "$INPUT_FILE dosyası $FORMAT formatına dönüştürülecek. Onaylıyor musunuz?" 10 60); then
 
-        # İlerleme Çubuğu
+        # İlerleme Çubuğu (yirmişer aralıklı)
         {
             for ((i = 0 ; i <= 100 ; i+=20)); do
                 sleep 0.5
@@ -47,19 +63,24 @@ run_tui() {
 
         # Dönüştürme işlemini çağır ve hataları yakala
         MSG=$(convert_document "$INPUT_FILE" "$FORMAT" 2>&1)
-       
-        # Sonucu göster
-        whiptail --title "Sonuç" --msgbox "$MSG" 12 70
+        EXIT_STATUS=$?
+        
+        if [ $EXIT_STATUS -eq 0 ]; then
+             whiptail --title "Başarılı" --msgbox "$MSG" 10 60
+        else
+             # functions.sh'tan dönen hatayı göster
+             whiptail --title "Dönüştürme Hatası" --msgbox "$MSG" 12 70
+        fi
     else
-        echo "Kullanıcı onayı vermedi."
+        whiptail --title "İptal" --msgbox "İşlem kullanıcı tarafından iptal edildi." 8 40
     fi
 }
 
-# --- GUI YAD ---
+# --- GUI - YAD ---
 run_gui() {
     # Dosya Seçimi
     INPUT_FILE=$(yad --file --title="Dosya Seç" --width=600 --height=400)
-   
+    
     # İptal edilirse çık
     if [ -z "$INPUT_FILE" ]; then
         exit 1
@@ -74,31 +95,33 @@ run_gui() {
     "md" "Markdown" \
     "txt" "Düz Metin" \
     --height=300 --print-column=1)
-   
+    
+    # Format seçilmezse çık
     if [ -z "$FORMAT" ]; then
         exit 1
     fi
-   
+    
     # Format çıktısını temizle (| karakterini sil)
     FORMAT=$(echo $FORMAT | tr -d '|')
-         
-   # İlerleme çubuğu ve işlem
+          
+    # İlerleme çubuğu ve işlem 
     (
-        # %20'den %80'e kadar ilerleyen çubuk
+        # İlerleme çubuğu
         for ((i = 20; i <= 80; i+=20)); do
-            echo $i                        
-            echo "# Dönüştürülüyor... %$i" 
-            sleep 0.5                
+            echo $i
+            echo "# Dönüştürülüyor... %$i"
+            sleep 0.5
         done
 
-        # İşlemi yap ve çıktıyı değişkene al
+        # Dosya dönüştürme işlemi
         OUTPUT=$(convert_document "$INPUT_FILE" "$FORMAT" 2>&1)
         
+        # Bitiş
         echo "100"
         echo "# İşlem Tamamlandı!"
         sleep 0.5
         
-        # YAD için sonucu geçici dosyaya yaz 
+        # Sonucu geçici dosyaya yaz
         echo "$OUTPUT" > /tmp/yad_output
     ) | yad --progress --title="İşlem" --percentage=0 --auto-close --width=400
 
@@ -110,9 +133,9 @@ run_gui() {
     fi
 }
 
-# --- ANA MENÜ ---
+# --- ANA MENÜ (GİRİŞ NOKTASI) ---
 
-# Eğer YAD yüklü değilse hata vermeden direkt TUI açılır
+# Eğer YAD yüklü değilse hata vermez direkt TUI açılır
 if ! command -v yad &> /dev/null; then
     run_tui
     exit
@@ -125,7 +148,7 @@ CHOICE=$(yad --list --title="Arayüz Seçimi" --text="Lütfen kullanmak istediğ
 "TUI" "Terminal Arayüzü (Klavye ile kullanım)" \
 --height=250 --width=500 --print-column=1 2> /dev/null)
 
-# YAD çıktısının sonundaki '|' işareti temizlenerek else'e girmesi engellenir
+# Seçim Temizliği (Hata vermemesi için '|' kaldırılır)
 CHOICE=$(echo $CHOICE | tr -d '|')
 
 # Seçime göre yönlendirme
