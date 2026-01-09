@@ -15,7 +15,7 @@ Proje, **Pardus 23.0** (Debian tabanlı Linux dağıtımı) üzerinde geliştiri
     * **TUI Modu:** `Whiptail` kullanılarak oluşturulmuş, terminal/konsol ortamında çalışan klavye tabanlı arayüz.
 * **Otomatik Kurulum:** Gerekli tüm bağımlılıkları (Pandoc, LaTeX, YAD vb.) otomatik olarak tespit eden, eksikleri indiren ve yapılandıran bir `install.sh` scripti içerir.
 * **Hata Yönetimi:**
-    * Kullanıcı hatalı dosya yolu girdiğinde veya boş bırakıldığında program çökmez, uyarı vererek tekrar giriş ister (Döngüsel kontrol).
+    * Kullanıcı hatalı dosya yolu girdiğinde veya boş bırakıldığında program çökmez, uyarı vererek tekrar giriş ister.
     * Dosya varlığı ve format uyumluluğu kontrol edilir.
 * **Format Desteği:** Aşağıdaki formatlar arasında dönüşüm yapılabilir:
     * PDF (`.pdf`)
@@ -71,17 +71,36 @@ Script çalıştırıldığında sizi bir seçim menüsü karşılar:
 
 * TUI (Terminal Arayüzü): Klavye ile yönetilen metin tabanlı mod.
 
+
+<p align="center">
+  <img src="screenshots/UI.png" alt="Arayüz Seçim Ekranı">
+</p>
+
 **2. Dosya Seçimi**
 
-Dönüştürmek istediğiniz kaynak dosyanın yolunu girin (Örnek: /home/kullanici/belge.txt). Olmayan bir dosya seçerseniz program sizi uyarır ve tekrar seçmenizi ister.
+Dönüştürmek istediğiniz kaynak dosyayı seçin veya yolunu girin (Örnek: /home/kullanici/belge.txt). Olmayan bir dosya seçerseniz program sizi uyarır ve tekrar seçmenizi ister.
+
+| GUI Modu (Grafik Arayüz) | TUI Modu (Terminal Arayüz) |
+| :---: | :---: |
+| ![GUI Ekranı](screenshots/GUI.png) | ![TUI Ekranı](screenshots/TUI.png) |
 
 **3. Hedef Format Seçimi**
 
 Listeden dönüştürmek istediğiniz formatı seçin (PDF, DOCX vb.).
 
+
+<p align="center">
+  <img src="screenshots/FormatSelection.png" alt="Format Seçim Penceresi">
+</p>
+
 **4. Dönüştürme**
 
 İşlem başlar ve ekranda ilerleme çubuğu görünür. İşlem bittiğinde yeni oluşturulan dosya kaynak dosya ile aynı dizine kaydedilir.
+
+
+<p align="center">
+  <img src="screenshots/Converting.png" alt="İlerleme Çubuğu">
+</p>
 
 ## 📂 Proje Yapısı
 ```text
@@ -99,3 +118,4 @@ Eğer aklınızda projeyi geliştirecek bir öneri varsa veya bir hata fark etti
 
 ## 📄 Lisans
 Bu proje MIT Lisansı altında lisanslanmıştır.
+
