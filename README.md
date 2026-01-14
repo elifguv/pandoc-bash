@@ -112,10 +112,18 @@ pandoc-bash/
 └── README.md           # Proje dokümantasyonu
 ```
 
+## 🎥 Proje Tanıtım Videosu
+
+Projenin kurulumunu ve çalışmasını adım adım görmek için aşağıdaki videoyu izleyebilirsiniz:
+
+https://youtu.be/3MjCXH1pnos
+
+
 ## Katkıda Bulunma
 
 Eğer aklınızda projeyi geliştirecek bir öneri varsa veya bir hata fark ettiyseniz katkıda bulunmaktan çekinmeyin. Yeni bir branch açın ve değişikliklerinizi gönderin :)
 
 ## 📄 Lisans
 Bu proje MIT Lisansı altında lisanslanmıştır.
+
 
